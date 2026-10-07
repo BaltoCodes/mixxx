@@ -9,6 +9,9 @@
 #include "analyzer/constants.h"
 #include "analyzer/plugins/analyzerqueenmarybeats.h"
 #include "analyzer/plugins/analyzersoundtouchbeats.h"
+#ifdef __BEATTHIS__
+#include "analyzer/plugins/analyzerbeatthis.h"
+#endif
 #include "library/rekordbox/rekordboxconstants.h"
 #include "track/beatfactory.h"
 #include "track/track.h"
@@ -19,6 +22,9 @@ QList<mixxx::AnalyzerPluginInfo> AnalyzerBeats::availablePlugins() {
     // First one below is the default
     plugins.append(mixxx::AnalyzerQueenMaryBeats::pluginInfo());
     plugins.append(mixxx::AnalyzerSoundTouchBeats::pluginInfo());
+#ifdef __BEATTHIS__
+    plugins.append(mixxx::AnalyzerBeatThis::pluginInfo());
+#endif
     return plugins;
 }
 
@@ -30,7 +36,8 @@ mixxx::AnalyzerPluginInfo AnalyzerBeats::defaultPlugin() {
 }
 
 AnalyzerBeats::AnalyzerBeats(UserSettingsPointer pConfig, bool enforceBpmDetection)
-        : m_bpmSettings(pConfig),
+        : m_pConfig(pConfig),
+          m_bpmSettings(pConfig),
           m_enforceBpmDetection(enforceBpmDetection),
           m_bPreferencesReanalyzeOldBpm(false),
           m_bPreferencesReanalyzeImported(false),
@@ -107,6 +114,11 @@ bool AnalyzerBeats::initialize(const AnalyzerTrack& track,
             m_pPlugin = std::make_unique<mixxx::AnalyzerQueenMaryBeats>();
         } else if (m_pluginId == mixxx::AnalyzerSoundTouchBeats::pluginInfo().id()) {
             m_pPlugin = std::make_unique<mixxx::AnalyzerSoundTouchBeats>();
+#ifdef __BEATTHIS__
+        } else if (m_pluginId == mixxx::AnalyzerBeatThis::pluginInfo().id()) {
+            m_pPlugin = std::make_unique<mixxx::AnalyzerBeatThis>(
+                    mixxx::AnalyzerBeatThis::defaultModelPath(m_pConfig));
+#endif
         } else {
             // This must not happen, because we have already verified above
             // that the PlugInId is valid

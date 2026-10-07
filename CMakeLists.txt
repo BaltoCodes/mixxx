@@ -3663,6 +3663,49 @@ if(KEYFINDER)
   target_compile_definitions(mixxx-lib PUBLIC __KEYFINDER__)
 endif()
 
+# Beat This! neural network beat tracker
+option(
+  BEATTHIS
+  "Beat This! neural network beat detection (needs ONNX Runtime and soxr)"
+  OFF
+)
+if(BEATTHIS)
+  find_package(onnxruntime REQUIRED)
+  find_package(soxr REQUIRED)
+  find_package(FFTW3 REQUIRED)
+
+  target_sources(
+    mixxx-lib
+    PRIVATE
+      src/analyzer/plugins/analyzerbeatthis.cpp
+      src/analyzer/plugins/beatthis/chunker.cpp
+      src/analyzer/plugins/beatthis/melspectrogram.cpp
+      src/analyzer/plugins/beatthis/model.cpp
+      src/analyzer/plugins/beatthis/resampler.cpp
+  )
+  target_link_libraries(
+    mixxx-lib
+    PRIVATE onnxruntime::onnxruntime soxr::soxr FFTW3::fftw3
+  )
+  target_compile_definitions(mixxx-lib PUBLIC __BEATTHIS__)
+
+  if(BUILD_TESTING)
+    target_sources(mixxx-test PRIVATE src/test/beatthis_test.cpp)
+    # The tests include the plugin headers directly.
+    target_link_libraries(
+      mixxx-test
+      PRIVATE onnxruntime::onnxruntime soxr::soxr FFTW3::fftw3
+    )
+  endif()
+
+  install(
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/res/models"
+    DESTINATION "${MIXXX_INSTALL_DATADIR}"
+    FILES_MATCHING
+    PATTERN "*.onnx"
+  )
+endif()
+
 # FLAC
 find_package(FLAC REQUIRED)
 target_link_libraries(mixxx-lib PRIVATE FLAC::FLAC)

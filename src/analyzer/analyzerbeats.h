@@ -32,6 +32,7 @@ class AnalyzerBeats : public Analyzer {
     static QHash<QString, QString> getExtraVersionInfo(
             const QString& pluginId, bool bPreferencesFastAnalysis);
 
+    UserSettingsPointer m_pConfig;
     BeatDetectionSettings m_bpmSettings;
     std::unique_ptr<mixxx::AnalyzerBeatsPlugin> m_pPlugin;
     const bool m_enforceBpmDetection;
